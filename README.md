@@ -8,11 +8,15 @@ Deep learning based image denoising – explored CNN, UNet &amp; Autoencoder arc
 运行app.py，打开浏览器进入127.0.0.1:7860。左侧可以上传待处理图像并进行配置，右侧输出结果。
 
 可用两种处理方式：
+
 对干净图像加噪后再去噪，右侧输出加噪后图像、去噪后图像、Clean-Noisy-Denoised图像对比以及SSIM和PSNR指标。
+
 直接对图像去噪：右侧输出去噪后图像以及去噪前后图像对比。
 
 可用两种去噪方法：
+
 深度学习方法：选择要使用的去噪模型并配置。
+
 传统高斯滤波方法：可自行调整高斯滤波半径。
 
 ##训练与评估说明
