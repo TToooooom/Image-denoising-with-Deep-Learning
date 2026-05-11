@@ -15,7 +15,7 @@ Due to GitHub file size limitations, model checkpoint files in `checkpoints/` ar
 
 | Model | 说明 | Description |
 |---|---|---|
-| CNN | 简单卷积去噪 baseline | A simple convolutional denoising baseline |
+| CNN | 简单卷积去噪 | A simple convolutional denoising baseline |
 | AutoEncoder | 编码器-解码器结构，通过压缩表示进行图像恢复 | Encoder-decoder model for image restoration |
 | U-Net | 编码器-解码器结构，使用 skip connection 保留图像细节 | Encoder-decoder model with skip connections |
 | U-Net Residual | 预测噪声残差，再从输入图像中减去噪声 | Predicts the noise residual and subtracts it from the noisy input |
@@ -119,6 +119,7 @@ No training is required. Users can adjust the Gaussian filter radius for traditi
 ---
 
 ## 4. 训练与评估说明
+
 本项目支持两种训练方式：
 
 This project supports two training modes:
@@ -129,3 +130,90 @@ This project supports two training modes:
 ```
 
 ### 4.1. 单模型训练 / Training a Single Model
+
+使用train.py可以训练指定模型(CNN, Autoencoder, UNet, UNet-Residual)。
+
+Use train.py to train one specified model(CNN, Autoencoder, UNet, UNet-Residual).
+
+示例：训练U-Net：
+
+Example：training U-Net
+
+```
+python train.py --model_name unet --image_dir "./data/voc_images" --noise_type gaussian --noise_level 0.1 --image_size 256 --resize_size 288 --batch_size 4 --epochs 20 --loss_type charbonnier_mse --charbonnier_weight 0.8 --mse_weight 0.2 --lr 0.001 --weight_decay 0.00001 --num_workers 0 --seed 42 --device auto --val_every 1
+```
+
+### 4.2. 多模型批量训练 / Training Multiple Models
+
+使用 run_experiments.py 可以依次训练多个模型。目前脚本默认训练：
+
+Use run_experiments.py to train multiple models sequentially. By default, it trains:
+
+```
+cnn
+autoencoder
+unet
+unet_residual
+```
+
+示例：训练四个模型，并在训练完成后自动评估：
+
+Example: train all four models and automatically evaluate them after training:
+
+```
+python run_experiments.py --image_dir "./data/voc_images" --noise_type gaussian --noise_level 0.1 --image_size 256 --resize_size 288 --batch_size 4 --eval_batch_size 4 --epochs 15 --loss_type charbonnier_mse --charbonnier_weight 0.8 --mse_weight 0.2 --lr 0.001 --weight_decay 0.00001 --num_workers 0 --seed 42 --device auto --val_every 1 --run_eval --num_save_images 10
+```
+
+该命令将依次完成：
+
+This command will sequentially:
+
+```
+Train CNN
+Train AutoEncoder
+Train U-Net
+Train U-Net Residual
+Evaluate each trained model
+Save checkpoints, training logs, curves, metrics, and visual results
+```
+
+### 4.3. 主要参数 / Main Parameters
+
+| Parameter | 说明 | Description |
+|---|---|---|
+| --image_dir | 图像数据集路径 | Path to the image dataset |
+| --model_name | 指定训练模型，仅用于 train.py | Model name, only used in train.py |
+| --noise_type | 噪声类型，支持 gaussian 和 salt_pepper | Noise type, supporting gaussian and salt_pepper |
+| --noise_level | 噪声强度；Gaussian 下为标准差 sigma | Noise level; standard deviation sigma for Gaussian noise |
+| --image_size | 训练输入 patch 大小，例如 128 或 256 | Training patch size, such as 128 or 256 |
+| --resize_size | 随机裁剪前的缩放尺寸 | Resize size before random crop |
+| --bath_size | 训练 batch size | Training batch size |
+| --eval_batch_size | 评估 batch size | Evaluation batch size |
+| --epochs | 训练轮数 | Number of training epochs |
+| --loss_type | 损失函数类型，推荐 charbonnier_mse | Loss type, charbonnier_mse is recommended |
+| --charbonnier_weight | Charbonnier Loss 权重 | Weight of Charbonnier Loss |
+| --mse_weight | MSE Loss 权重 | Weight of MSE Loss |
+| --lr | 学习率 | Learning rate |
+| --weight_decay | 权重衰减 | Weight decay |
+| --num_workers | DataLoader 子进程数，Windows 下建议为 0 | Number of DataLoader workers; 0 is recommended on Windows |
+| --seed | 随机种子 | Random seed |
+| --device | 训练设备，auto 表示自动选择 GPU 或 CPU | Training device; auto selects GPU or CPU automatically |
+| --val_every | 每隔多少轮验证一次 | Validation frequency |
+| --run_eval | 训练完成后是否自动评估 | Whether to run evaluation after training |
+| --num_save_images | 评估时保存的可视化图片数量 | Number of visualization images saved during evaluation |
+
+---
+
+## 5. 推荐命令 / Recommended Command
+
+推荐使用以下命令训练四个模型并自动评估：
+
+The following command is recommended for training and evaluating all four models:
+
+```
+python run_experiments.py --image_dir "./data/voc_images" --noise_type gaussian --noise_level 0.1 --image_size 256 --resize_size 288 --batch_size 4 --eval_batch_size 4 --epochs 15 --loss_type charbonnier_mse --charbonnier_weight 0.8 --mse_weight 0.2 --lr 0.001 --weight_decay 0.00001 --num_workers 0 --seed 42 --device auto --val_every 1 --run_eval --num_save_images 10
+```
+
+该设置在训练成本和视觉效果之间较为平衡。
+
+This setting provides a reasonable balance between training cost and visual quality.
